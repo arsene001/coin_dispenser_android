@@ -6,54 +6,63 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
-import com.app.coindispenser.logic.ServerHandler;
+import com.app.coindispenser.logic.LoginTask;
+
+import java.util.concurrent.ExecutionException;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private ServerHandler serverHandler;
+    private EditText username;
+    private EditText password;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        final SharedPreferences preferences = getApplicationContext().getSharedPreferences("preferences", 0);
+        preferences = getApplicationContext().getSharedPreferences("preferences", 0);
 
-        serverHandler = new ServerHandler();
+        username = findViewById(R.id.username);
+        password = findViewById(R.id.password);
 
         Button loginButton = findViewById(R.id.login);
-        final EditText username = findViewById(R.id.username);
-        final EditText password = findViewById(R.id.password);
+        loginButton.setOnClickListener(this);
+    }
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Call server to handle login mechanism
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.login: {
 
                 final String message = "LOGIN#username:" + username.getText() + "#password:" + password.getText();
 
-                new Thread() {
+                try {
 
-                    public void run() {
+                    Boolean result = new LoginTask().execute(message).get();
 
-                        boolean result = serverHandler.loginUserIn(message);
-
-                        if (result) {
-                            SharedPreferences.Editor edit = preferences.edit();
-                            edit.putBoolean("loggedIn", true);
-                            edit.commit();
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            startActivity(intent);
-                        }
-
+                    if (result) {
+                        SharedPreferences.Editor edit = preferences.edit();
+                        edit.putBoolean("loggedIn", true);
+                        edit.commit();
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Toast toast = Toast.makeText(getApplicationContext(), "Invalid login. Please enter correct login details",
+                                Toast.LENGTH_LONG);
+                        toast.show();
                     }
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-                }.start();
-
+                break;
             }
-        });
+        }
     }
 }

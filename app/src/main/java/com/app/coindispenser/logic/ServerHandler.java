@@ -8,25 +8,25 @@ import java.net.Socket;
 
 public class ServerHandler {
 
-    private String host = "192.168.1.64";
+    private String host = "192.168.1.47";
     private int port = 8080;
     private Socket serverSocket;
     private PrintWriter writer;
     private BufferedReader reader;
 
-    public void startConnection() throws IOException {
+    void startConnection() throws IOException {
         serverSocket = new Socket(host, port);
         writer = new PrintWriter(serverSocket.getOutputStream(), true);
         reader = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
     }
 
-    public void stopConnection() throws IOException {
+    void stopConnection() throws IOException {
         reader.close();
         writer.close();
         serverSocket.close();
     }
 
-    public boolean loginUserIn(String message) {
+    boolean loginUserIn(String message) {
         try {
             writer.println(message);
             String resp = reader.readLine();
@@ -37,7 +37,7 @@ public class ServerHandler {
         return false;
     }
 
-    public String calculateDenomination(String message) {
+    String calculateDenomination(String message) {
 
         try {
             writer.println(message);
